@@ -1,3 +1,5 @@
+ASSIGNMENT  : ( Date: 21-04-22) 
+
 # TOPIC: Authentication
 
 ## Authentication with JWT
@@ -8,7 +10,7 @@
 - For this assignment you have to create a new branch - assignment/auth-
 - Your user document should look like this
 ```
- 	{
+{
     "_id" : ObjectId("6226e3d2b98f22b349ca58be"),
     "firstName" : "Sabiha",
     "lastName" : "Khan",
@@ -22,8 +24,6 @@
     "updatedAt" : ISODate("2022-03-08T05:04:18.737Z"),
     "__v" : 0
 }
-```
-
 
 - Write a **POST api /users** to register a user from the user details in request body. 
 - Write a ***POST api /login** to login a user that takes user details - email and password from the request body. If the credentials don't match with any user's data return a suitable error.
@@ -34,6 +34,3 @@ If present, check that the token is valid.
 - Write a **DELETE api /users/:userId** that takes the userId in the path params and marks the isDeleted attribute for a user as true. Check that request must contain **x-auth-token** header. If absent, return a suitable error.
 - Once, all the apis are working fine, move the authentication related code in a middleware called auth.js
 - Add this middleware at route level in the routes where applicable.
-
-
-
