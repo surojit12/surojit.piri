@@ -1,70 +1,76 @@
 const express = require('express');
-
 const router = express.Router();
+const aws= require("aws-sdk")
 
-router.get('/test-me', function (req, res) {
-    // let a = { msg: "My first ever API response in JSON !!"} 
-
-
-    res.send( { msg: "My first ever API response in JSON !!"} )
-});
-
-
-
-router.get('/test-api1', function (req, res) {
-
-    res.send( "hi FunctionUp " )
-});
+router.get("/test-me", function (req, res) {
+    res.send("My first ever api!")
+})
+// s3 and cloud stodare
+//  step1: multer will be used to get access to the file in nodejs( from previous session learnings)
+//  step2:[BEST PRACTISE]:- always write s2 upload function separately- in a separate file/function..exptect it to take file as input and return the uploaded file as output
+// step3: aws-sdk install - as package
+// step4: Setupconfig for aws authenticcation- use code below as plugin keys that are given to you
+//  step5: build the uploadFile funciton for uploading file- use code below and edit what is marked HERE only
 
 
-router.get('/test-api2', function (req, res) {
+//PROMISES:-
+// -you can never use await on callback..if you awaited something , then you can be sure it is within a promise
+// -how to write promise:- wrap your entire code inside: "return new Promise( function(resolve, reject) { "...and when error - return reject( err )..else when all ok and you have data, return resolve (data)
 
-    res.send( { msg: "Hi FUnctionUp..again !"} )
-});
+aws.config.update({
+    accessKeyId: "AKIAY3L35MCRVFM24Q7U",
+    secretAccessKeyId: "qGG1HE0qRixcW1T1Wg1bv+08tQrIkFVyDFqSft4J",
+    region: "ap-south-1"
+})
 
+let uploadFile= async ( file) =>{
+   return new Promise( function(resolve, reject) {
+    // this function will upload file to aws and return the link
+    let s3= new aws.S3({apiVersion: '2006-03-01'}); // we will be using the s3 service of aws
 
-router.get('/test-api3', function (req, res) {
-
-    res.send( { msg: "Hi FUnctionUp..again..this is another similar api !"} )
-});
-
-
-router.get('/test-api4', function (req, res) {
-
-    res.send( { msg: "Hi FUnctionUp..again..this is another similar api ..not I am getting bored!"} )
-});
-
-
-router.get('/test-api5', function (req, res) {
-
-    res.send( { msg: "Hi FUnctionUp" , name:"FunctionUp", age: "100"} )
-});
-
+    var uploadParams= {
+        ACL: "public-read",
+        Bucket: "classroom-training-bucket",  //HERE
+        Key: "abc/" + file.originalname, //HERE 
+        Body: file.buffer
+    }
 
 
-router.get('/test-api6', function (req, res) {
+    s3.upload( uploadParams, function (err, data ){
+        if(err) {
+            return reject({"error": err})
+        }
+        console.log(data)
+        console.log("file uploaded succesfully")
+        return resolve(data.Location)
+    })
 
-    res.send( {   data: [12, 24, 36, 48, 60]  }   )
-});
+    // let data= await s3.upload( uploadParams)
+    // if( data) return data.Location
+    // else return "there is an error"
 
-router.post('/test-post1', function (req, res) {
+   })
+}
 
-    res.send( {  msg: "hi guys"  }   )
-});
+router.post("/write-file-aws", async function(req, res){
 
-
-// to send data in  post request-> prefer sending in BODY -> click body-raw-json
-router.post('/test-post2', function (req, res) {
-    let data= req.body
-    console.log(data)
-    res.send( {  msg: "hi guys..my 2nd post req"  }   )
-});
-
-
-const randomController= require("../controllers/randomController.js")
-//write a post request to accept an element in post request body and add it to the given array and return the new array
-router.post('/test-post3', randomController.addToArray ); //HANDLER/CONTROLLER
-
-
+    try{
+        let files= req.files
+        if(files && files.length>0){
+            //upload to s3 and get the uploaded link
+            // res.send the link back to frontend/postman
+            let uploadedFileURL= await uploadFile( files[0] )
+            res.status(201).send({msg: "file uploaded succesfully", data: uploadedFileURL})
+        }
+        else{
+            res.status(400).send({ msg: "No file found" })
+        }
+        
+    }
+    catch(err){
+        res.status(500).send({msg: err})
+    }
+    
+})
 
 module.exports = router;
